@@ -1,0 +1,64 @@
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+    <!-- 开发者模式,修改配置文件也不需要重启服务器,但是使用时项目下要有index页面 -->
+    <constant name="struts.devMode" value="true"/>
+    <constant name="struts.ui.theme" value="simple"/>
+    <!-- Action的class可以直接去容器中找,所以写bean的id -->
+    <package name="deptPkg" extends="struts-default" namespace="/">
+        <interceptors>
+            <interceptor name="checkLogin" class="com._520it.wms.web.interceptor.LoginInterceptor"></interceptor>
+            <interceptor name="securityInterceptor"
+                         class="com._520it.wms.web.interceptor.SecurityInterceptor"></interceptor>
+            <interceptor-stack name="myStack">
+                <interceptor-ref name="checkLogin"></interceptor-ref>
+                <interceptor-ref name="securityInterceptor"></interceptor-ref>
+                <interceptor-ref name="store">
+                    <!-- 拦截数据的读写方式 -->
+                    <param name="operationMode">AUTOMATIC</param>
+                </interceptor-ref>
+                <interceptor-ref name="defaultStack"></interceptor-ref>
+            </interceptor-stack>
+        </interceptors>
+        <default-interceptor-ref name="myStack"></default-interceptor-ref>
+        <global-results>
+            <result name="login">/login.jsp</result>
+            <result name="nopermission">/nopermission.jsp</result>
+            <result name="error">/common/error.jsp</result>
+        </global-results>
+        <!--全局的错误页面-->
+        <!--<global-exception-mappings>
+            <exception-mapping exception="java.lang.ArithmeticException" result="error"></exception-mapping>
+        </global-exception-mappings>-->
+        <action name="systemMenu_*" class="systemMenuAction" method="{1}">
+            <result name="list">/WEB-INF/views/systemMenu/list.jsp</result>
+            <result name="input">/WEB-INF/views/systemMenu/input.jsp</result>
+            <result name="success" type="redirectAction">
+                <!--指定要访问的action名称-->
+                <param name="actionName">systemMenu</param>
+                <!--访问上面action时传递qo.parentId到下一个请求中-->
+                <param name="qo.parentId">${qo.parentId}</param>
+            </result>
+        </action>
+
+        <action name="main">
+            <result>
+                /WEB-INF/views/main.jsp
+            </result>
+        </action>
+
+        <action name="login" class="loginAction">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
+            <result name="main" type="redirectAction">main</result>
+        </action>
+
+        <action name="*_*" class="{1}Action" method="{2}">
+            <result name="list">/WEB-INF/views/{1}/list.jsp</result>
+            <result name="input">/WEB-INF/views/{1}/input.jsp</result>
+            <result name="success" type="redirectAction">{1}</result>
+            <result name="{2}">/WEB-INF/views/{1}/{2}.jsp</result>
+        </action>
+    </package>
+
+</struts>

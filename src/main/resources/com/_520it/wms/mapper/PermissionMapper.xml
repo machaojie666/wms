@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com._520it.wms.mapper.PermissionMapper">
+
+    <resultMap type="Permission" id="base_mapper">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="expression" column="expression"/>
+    </resultMap>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id"
+            keyColumn="id">
+		insert into permission (name,expression) values (#{name},#{expression})
+	</insert>
+
+    <delete id="delete" parameterType="Long">
+		delete from permission where
+		id = #{id}
+	</delete>
+
+    <select id="list" resultMap="base_mapper">
+		select * from permission
+	</select>
+
+    <select id="getListData" resultMap="base_mapper">
+		select * from permission
+		limit #{beginIndex},#{pageSize}
+	</select>
+
+    <select id="getTotalCount" resultType="Long">
+		select count(*) from
+		permission
+	</select>
+
+    <select id="getByRoleId" resultMap="base_mapper">
+		SELECT p.id, p.`name`,
+		p.expression
+		FROM role r
+		JOIN roles_permissions rp
+		ON r.id = rp.role_id
+		JOIN permission p
+		ON
+		rp.permission_id = p.id
+		where r.id = #{roleId}
+	</select>
+
+    <select id="getByEmployeeId" resultType="java.lang.String">
+		SELECT p.id,p.name,p.expression
+		FROM role r
+		JOIN roles_permissions rp
+		ON r.id = rp.role_id
+		JOIN permission p
+		ON rp.permission_id = p.id
+		WHERE r.id IN (SELECT r.id
+		FROM employees_roles er JOIN role r
+		ON er.role_id = r.id
+		WHERE er.employee_id = #{empId})
+	</select>
+
+</mapper>

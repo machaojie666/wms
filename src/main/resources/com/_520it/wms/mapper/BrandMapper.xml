@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.BrandMapper">
+	<!-- 供货品中引用  -->
+	<resultMap id="SimpleResultMap" type="Brand">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+	</resultMap>
+	
+	<resultMap id="base_mapper" type="Brand">
+		<id column="id" property="id" />
+		<result column="sn" property="sn" />
+		<result column="name" property="name" />
+	</resultMap>
+	<delete id="delete">
+		delete from brand where id = #{id}
+	</delete>
+	<insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into
+		brand
+		(sn,name)
+		values
+		(#{sn},#{name})
+	</insert>
+	<update id="update">
+		update brand
+		set
+		sn=#{sn},
+		name=#{name}
+		where id = #{id}
+	</update>
+	<select id="get" resultMap="base_mapper">
+		select * from brand where
+		id = #{id}
+	</select>
+	<select id="list" resultMap="base_mapper">
+		select * from brand
+	</select>
+	<sql id="conditions_sql">
+		<where>
+		</where>
+	</sql>
+	<select id="getTotalCount" resultType="long">
+		select count(*) from brand
+		<include refid="conditions_sql"></include>
+	</select>
+	<select id="getListData" resultMap="base_mapper">
+		select * from brand
+		<include refid="conditions_sql"></include>
+		limit #{beginIndex},#{pageSize}
+	</select>
+</mapper>

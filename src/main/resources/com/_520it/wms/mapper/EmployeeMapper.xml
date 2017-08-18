@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com._520it.wms.mapper.EmployeeMapper">
+    
+    <resultMap id="SimpleResultMap" type="Employee">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+    
+    <resultMap type="Employee" id="base_mapper">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="age" column="age"/>
+        <result property="admin" column="admin"/>
+        <!--员工和部门关系映射-->
+        <association property="dept" javaType="Department">
+            <result property="id" column="did"/>
+            <result property="name" column="dname"/>
+        </association>
+        <!--员工和角色关系映射-->
+        <collection property="roles" ofType="Role" select="com._520it.wms.mapper.RoleMapper.selectRolesByEmployeeId"
+                    column="id" fetchType="eager">
+        </collection>
+    </resultMap>
+    <sql id="sql_page">
+        <where>
+            <if test="keywords != null and keywords != ''">
+                (e.name like concat('%',#{keywords},'%')
+                or
+                e.email like
+                concat('%',#{keywords},'%'))
+            </if>
+            <if test="deptId != null and deptId != -1">
+                and dept_id = #{deptId}
+            </if>
+        </where>
+    </sql>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id"
+            keyColumn="id">
+		insert into employee (name,password,email,age,admin,dept_id)
+		values
+		(#{name},#{password},#{email},#{age},#{admin},#{dept.id})
+	</insert>
+
+    <delete id="delete" parameterType="long">
+		delete from employee where
+		id =
+		#{id}
+	</delete>
+
+    <update id="update">
+        update employee
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="admin != null">
+                admin = #{admin},
+            </if>
+            <if test="dept != null and dept.id != -1">
+                dept_id = #{dept.id}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="get" parameterType="Long" resultMap="base_mapper">
+		select e.*,d.id
+		did,d.name dname,
+		r.id rid, r.name rname, r.sn rsn
+		from employee e
+		left join department d
+		on e.dept_id = d.id
+		left join employees_roles er
+		on e.id = er.employee_id
+		left join role r
+		on r.id = er.role_id
+		where e.id
+		= #{id}
+	</select>
+
+    <select id="list" resultMap="base_mapper">
+		select e.*,d.id did,d.name dname
+		from employee e left join department d on e.dept_id = d.id
+	</select>
+
+    <select id="getListData" resultMap="base_mapper">
+        select e.*,d.id did,d.name
+        dname
+        from employee e left join
+        department d
+        on e.dept_id = d.id
+        <include refid="sql_page"/>
+        limit
+        #{beginIndex},#{pageSize}
+    </select>
+
+    <select id="getTotalCount" resultType="Long">
+        select COUNT(e.id)
+        from employee e left join
+        department d
+        on e.dept_id = d.id
+        <include refid="sql_page"/>
+    </select>
+    <!-- 删除用户和部门的关系 -->
+    <update id="deleteRelation" parameterType="Long">
+		update employee set
+		dept_id = null
+		where dept_id = #{id}
+	</update>
+    <!-- 保存用户和角色的关系 -->
+    <insert id="saveRelation">
+		insert into employees_roles
+		values (#{empId}, #{roleId})
+	</insert>
+    <!-- 删除用户和角色的关系 -->
+    <delete id="updateRelation">
+		delete from
+		employees_roles where employee_id = #{empId}
+	</delete>
+
+    <select id="checkLogin" resultMap="base_mapper">
+		select e.*
+		from employee e
+		where e.name = #{username} and e.password=#{password}
+	</select>
+
+    <delete id="batchDelete">
+        DELETE FROM employee WHERE id IN
+        <foreach collection="array" open="(" item="id" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

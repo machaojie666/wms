@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.StockIncomeBillMapper">
+    <resultMap id="base_mapper" type="StockIncomeBill">
+        <id column="id" property="id"></id>
+        <result column="sn" property="sn"></result>
+        <result column="vdate" property="vdate"></result>
+        <result column="status" property="status"></result>
+        <result column="totalAmount" property="totalAmount"></result>
+        <result column="totalNumber" property="totalNumber"></result>
+        <result column="auditTime" property="auditTime"></result>
+        <result column="inputTime" property="inputTime"></result>
+        <!--单个对象关联-->
+        <association property="auditor" javaType="Employee" columnPrefix="au_"
+                     resultMap="com._520it.wms.mapper.EmployeeMapper.SimpleResultMap">
+        </association>
+
+        <association property="inputUser" javaType="Employee" columnPrefix="iu_"
+                     resultMap="com._520it.wms.mapper.EmployeeMapper.SimpleResultMap">
+        </association>
+
+        <association property="depot" javaType="Depot" resultMap="com._520it.wms.mapper.DepotMapper.SimpleResultMap"
+                     columnPrefix="d_">
+        </association>
+        <!--集合关联-->
+        <collection property="items" ofType="StockIncomeBillItem" column="id"
+                    select="com._520it.wms.mapper.StockIncomeBillItemMapper.selectByBillId">
+        </collection>
+
+    </resultMap>
+
+    <sql id="base_column">
+        bill.id,bill.sn,bill.vdate,bill.status,bill.totalAmount,bill.totalNumber,bill.auditTime,bill.inputTime,
+        d.id AS d_id,d.name AS d_name,
+        iu.id AS iu_id,iu.name AS iu_name,
+        au.id AS au_id,au.name AS au_name
+    </sql>
+    <sql id="base_table">
+        stockIncomeBill bill
+        JOIN depot d ON bill.depot_id = d.id
+        JOIN employee iu ON bill.inputUser_id = iu.id
+        LEFT JOIN employee au ON bill.auditor_id = au.id
+    </sql>
+
+    <delete id="delete">
+        DELETE FROM StockIncomeBill WHERE id = #{id}
+    </delete>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO StockIncomeBill (sn,vdate,status,totalAmount,totalNumber,auditTime,inputTime,auditor_id,inputUser_id,depot_id)
+        VALUES (#{sn},#{vdate},#{status},#{totalAmount},#{totalNumber},#{auditTime},#{inputTime},#{auditor.id},#{inputUser.id},#{depot.id})
+    </insert>
+    <update id="update">
+        UPDATE StockIncomeBill
+        SET sn=#{sn},
+		vdate=#{vdate},
+		totalAmount=#{totalAmount},
+		totalNumber=#{totalNumber},
+		depot_id=#{depot.id}
+		where id = #{id}
+    </update>
+    <update id="updateStatus">
+        UPDATE StockIncomeBill
+        SET
+        status = #{status},
+        auditor_id = #{auditor.id},
+        auditTime = #{auditTime}
+        where id = #{id}
+    </update>
+    <select id="get" resultMap="base_mapper">
+        SELECT <include refid="base_column"/>
+        FROM <include refid="base_table"/>
+        WHERE bill.id = #{id}
+    </select>
+
+    <sql id="conditions_sql">
+        <where>
+            <if test="beginDate!=null">
+                AND bill.vdate >= #{beginDate}
+            </if>
+            <if test="endDate!=null">
+                and bill.vdate &lt;= #{endDate}
+            </if>
+            <if test="status>=0">
+                and bill.status = #{status}
+            </if>
+            <if test="depotId>=0">
+                and bill.depot_id = #{depotId}
+            </if>
+        </where>
+    </sql>
+    <select id="getTotalCount" resultType="long">
+        select count(bill.id)
+        from
+        <include refid="base_table"/>
+        <include refid="conditions_sql"/>
+    </select>
+    <select id="getListData" resultMap="base_mapper">
+        select
+        <include refid="base_column"/>
+        from
+        <include refid="base_table"/>
+        <include refid="conditions_sql"></include>
+        limit #{beginIndex},#{pageSize}
+    </select>
+</mapper>

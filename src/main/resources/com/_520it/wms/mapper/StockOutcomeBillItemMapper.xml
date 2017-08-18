@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.StockOutcomeBillItemMapper">
+
+    <resultMap id="base_mapper" type="StockOutcomeBillItem">
+        <id property="id" column="id"></id>
+        <result property="salePrice" column="salePrice"></result>
+        <result property="number" column="number"></result>
+        <result property="amount" column="amount"></result>
+        <result property="remark" column="remark"></result>
+        <result property="billId" column="bill_id"></result>
+
+        <association property="product" javaType="Product" column="product_id"
+                     select="com._520it.wms.mapper.ProductMapper.get"></association>
+
+    </resultMap>
+
+    <insert id="save">
+        insert into StockOutcomeBillItem (salePrice,number,amount,remark,product_id,bill_id)
+        values (#{salePrice},#{number},#{amount},#{remark},#{product.id},#{billId})
+    </insert>
+
+    <delete id="deleteByBillId">
+        DELETE FROM StockOutcomeBillItem WHERE bill_id = #{billId}
+    </delete>
+
+    <select id="selectByBillId" resultMap="base_mapper">
+        SELECT id,salePrice,number,amount,remark,bill_id,product_id
+        FROM StockOutcomeBillItem
+        WHERE bill_id = #{billId}
+    </select>
+
+</mapper>

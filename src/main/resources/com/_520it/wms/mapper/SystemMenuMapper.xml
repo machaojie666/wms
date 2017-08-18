@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.SystemMenuMapper">
+    <resultMap id="base_mapper" type="SystemMenu">
+        <id column="id" property="id"/>
+        <result column="sn" property="sn"/>
+        <result column="url" property="url"/>
+        <result column="name" property="name"/>
+        <association property="parent" javaType="SystemMenu" select="get" column="parent_id"></association>
+
+    </resultMap>
+    <delete id="delete">
+		delete from systemMenu where id = #{id}
+	</delete>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into
+		systemMenu
+		(parent_id,sn,url,name)
+		values
+		(#{parent.id},#{sn},#{url},#{name})
+	</insert>
+    <update id="update">
+		update systemMenu
+		set
+		sn=#{sn},
+		url=#{url},
+		name=#{name}
+		where id = #{id}
+	</update>
+    <select id="get" resultMap="base_mapper">
+		select * from systemMenu where
+		id = #{id}
+	</select>
+    <select id="list" resultMap="base_mapper">
+		select * from systemMenu
+	</select>
+    <sql id="conditions_sql">
+        <where>
+            <choose>
+                <when test="parentId == null">
+                    AND parent_id IS NULL
+                </when>
+                <otherwise>
+                    AND parent_id = #{parentId}
+                </otherwise>
+            </choose>
+        </where>
+    </sql>
+    <select id="getTotalCount" resultType="long">
+        select count(*) from systemMenu
+        <include refid="conditions_sql"></include>
+    </select>
+    <select id="getListData" resultMap="base_mapper">
+        select * from systemMenu
+        <include refid="conditions_sql"></include>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <select id="getMenusByParentSn" resultType="java.util.Map">
+        SELECT id AS id, name AS `name`,url AS `action`, parent_id AS pId
+        FROM systemmenu
+        WHERE parent_id =(
+            SELECT id FROM systemmenu WHERE sn = #{parentSn}
+        )
+    </select>
+    <select id="queryMenusByParentSnAndEmployeeId" resultType="java.util.Map">
+        SELECT id AS id, name AS `name`,url AS `action`, parent_id AS pId
+        FROM systemmenu WHERE id IN (
+            SELECT menu_id FROM role_menu WHERE role_id IN (
+                SELECT role_id FROM employees_roles WHERE employee_id = #{employeeId}
+            )
+        ) and parent_id = (
+            select id from systemmenu where sn = #{paramSn}
+        )
+    </select>
+</mapper>

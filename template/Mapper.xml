@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="${packageName}.mapper.${className}Mapper">
+	<resultMap id="base_mapper" type="${className}">
+		<id column="id" property="id" />
+		<#assign h = fieldMap>
+		<#assign keys = h?keys>
+		<#list keys as key>
+		<result column="${key}" property="${key}" />
+		</#list>
+	</resultMap>
+	<delete id="delete">
+		delete from ${objectName} where id = ${r'#{id}'}
+	</delete>
+	<insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into
+		${objectName}
+		(<#list keys
+		as key>${key}<#if key_has_next>,</#if></#list>)
+		values
+		(<#list keys as
+		key>${r'#{'}${key}${r'}'}<#if
+		key_has_next>,</#if></#list>)
+	</insert>
+	<update id="update">
+		update ${objectName}
+		set
+		<#list keys as key>
+		${key}=${r'#{'}${key}${r'}'}<#if
+		key_has_next>,</#if>
+		</#list>
+		where id = ${r'#{id}'}
+	</update>
+	<select id="get" resultMap="base_mapper">
+		select * from ${objectName} where
+		id = ${r'#{id}'}
+	</select>
+	<select id="list" resultMap="base_mapper">
+		select * from ${objectName}
+	</select>
+	<sql id="conditions_sql">
+		<where>
+		</where>
+	</sql>
+	<select id="getTotalCount" resultType="long">
+		select count(*) from ${objectName}
+		<include refid="conditions_sql"></include>
+	</select>
+	<select id="getListData" resultMap="base_mapper">
+		select * from ${objectName}
+		<include refid="conditions_sql"></include>
+		limit ${r'#{beginIndex}'},${r'#{pageSize}'}
+	</select>
+</mapper>

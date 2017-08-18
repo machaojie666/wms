@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.ProductMapper">
+    <resultMap id="base_mapper" type="Product">
+        <id column="id" property="id"/>
+        <result column="costPrice" property="costPrice"/>
+        <result column="sn" property="sn"/>
+        <result column="imagePath" property="imagePath"/>
+        <result column="name" property="name"/>
+        <result column="salePrice" property="salePrice"/>
+        <result column="intro" property="intro"/>
+        <!-- 内联查询 引用brand中的resultmap -->
+        <association property="brand" javaType="Brand" columnPrefix="b_"
+                     resultMap="com._520it.wms.mapper.BrandMapper.SimpleResultMap"/>
+    </resultMap>
+
+    <sql id="base_colume">
+		p.id,p.name,p.sn,p.costPrice,p.salePrice,p.intro,p.imagePath, b.id AS b_id,b.name AS b_name
+	</sql>
+    <sql id="base_table">
+		product p LEFT JOIN brand b ON p.brand_id = b.id
+	</sql>
+
+    <delete id="delete">
+		delete from product where id = #{id}
+	</delete>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into
+		product
+		(costPrice,sn,imagePath,name,brand_id,salePrice,intro)
+		values
+		(#{costPrice},#{sn},#{imagePath},#{name},#{brand.id},#{salePrice},#{intro})
+	</insert>
+    <update id="update">
+		update product
+		set
+		costPrice=#{costPrice},
+		sn=#{sn},
+		imagePath=#{imagePath},
+		name=#{name},
+		brand_id=#{brand.id},
+		salePrice=#{salePrice},
+		intro=#{intro}
+		where id = #{id}
+	</update>
+    <select id="get" resultMap="base_mapper">
+        select
+        <include refid="base_colume"/>
+        FROM
+        <include refid="base_table"/>
+        where
+        p.id = #{id}
+    </select>
+    <select id="list" resultMap="base_mapper">
+		select * from product
+	</select>
+    <sql id="base_where">
+        <where>
+            <if test="keywords!=null">
+                AND (p.name LIKE concat('%', #{keywords}, '%') OR p.sn LIKE concat('%', #{keywords}, '%'))
+            </if>
+            <if test="brandId>0">
+                AND p.brand_id = #{brandId}
+            </if>
+        </where>
+    </sql>
+    <select id="getTotalCount" resultType="long">
+        select count(*)
+        from
+        <include refid="base_table"/>
+        <include refid="base_where"/>
+    </select>
+    <select id="getListData" resultMap="base_mapper">
+        select
+        <include refid="base_colume"/>
+        FROM
+        <include refid="base_table"/>
+        <include refid="base_where"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+</mapper>

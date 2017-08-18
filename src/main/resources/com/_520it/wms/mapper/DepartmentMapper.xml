@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com._520it.wms.mapper.DepartmentMapper">
+
+	<resultMap type="Department" id="base_mapper">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="sn" column="sn" />
+	</resultMap>
+
+	<insert id="save" useGeneratedKeys="true" keyProperty="id"
+		keyColumn="id">
+		insert into department (name,sn) values (#{name},#{sn})
+	</insert>
+
+	<delete id="delete" parameterType="Long">
+		delete from department where
+		id = #{id}
+	</delete>
+
+	<update id="update" parameterType="Department">
+		update department set name =
+		#{name}, sn = #{sn} where id = #{id}
+	</update>
+
+	<select id="get" parameterType="Long" resultMap="base_mapper">
+		select * from
+		department where id = #{id}
+	</select>
+
+	<select id="list" resultMap="base_mapper">
+		select * from department
+	</select>
+
+	<select id="getListData" resultMap="base_mapper">
+		select * from department
+		limit #{beginIndex},#{pageSize}
+	</select>
+
+	<select id="getTotalCount" resultType="Long">
+		select count(*) from
+		department
+	</select>
+
+</mapper>
