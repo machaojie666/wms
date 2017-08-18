@@ -8,7 +8,7 @@
   <name>wms Maven Webapp</name>
   <url>http://maven.apache.org</url>
 
-  <!-- 2:项目编码 -->
+  <!-- 项目编码 -->
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring.version>4.2.4.RELEASE</spring.version>
